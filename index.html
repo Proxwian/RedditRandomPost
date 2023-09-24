@@ -1,0 +1,70 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Reddit r/Mkeyboards widget</title>
+  </head>
+  <body>
+    <div id="embed"></div>
+    <script>
+
+    /** 
+     * Script by @proxwian
+     * Params:
+     * @param subRedditName - name of subreddit from reddit.com/r url
+     * @param topic - subreddit post channel (hot/new/top/best/random)
+     * @param maxPosts - number of posts randomized by per request
+     * @param darkTheme - turn on or off dark theme for embeds
+     */
+    
+    const subRedditName = 'MechanicalKeyboards';
+    const topic = 'hot';
+    const maxPosts = 25;
+    const darkTheme = true;
+
+    function fetchApi() {
+        fetch('https://www.reddit.com/r/' + subRedditName + '/' + topic + '.json?count=' + maxPosts)
+            .then((data) => data.json())
+            .then((result) => {
+                dataArr = result.data.children;
+                const rndInt = Math.floor(Math.random() * maxPosts) + 1
+                const url = dataArr[rndInt].data.permalink;
+                getEmbed(url)
+            })
+    }
+
+    function getEmbed(url) {
+        fetch('https://corsproxy.org/?' + encodeURIComponent('https://www.reddit.com/oembed?url=https://www.reddit.com' + url))
+        .then((data) => data.json())
+        .then((result) => {
+            const embed = result.html;
+            displayOnPage(embed)
+        })
+    }
+
+    function displayOnPage(embed) {
+        const embedElement = document.getElementById("embed");
+        setInnerHtml(embedElement, embed);
+    }
+
+    function setInnerHtml(elm, html) {
+        elm.innerHTML = html;
+        if (darkTheme) {
+            document.getElementsByTagName("blockquote")[0].setAttribute('data-embed-theme', 'dark');
+        }
+        Array.from(elm.querySelectorAll("script")).forEach(oldScript => {
+            const newScript = document.createElement("script");
+            Array.from(oldScript.attributes)
+            .forEach(attr => newScript.setAttribute(attr.name, attr.value));
+            newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
+    }
+
+    fetchApi();
+    var int=self.setInterval(fetchApi, 30000);
+
+    </script>
+  </body>
+</html>
